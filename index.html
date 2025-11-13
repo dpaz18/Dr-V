@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Luna - Spirit, Essence and Vision</title>
+  <style>
+    /* ========== RESET ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ========== DESKTOP WIDGET (PRIMARY) ========== */
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a1520;
+    }
+
+    /* Desktop widget container - fixed size with glassmorphism */
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      border-radius: 24px;
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.15) 0%,
+        rgba(58, 127, 176, 0.12) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1.5px solid rgba(74, 159, 216, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 16px 64px rgba(74, 159, 216, 0.2),
+                  0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ========== HEADER ========== */
+    .chat-header {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.4) 0%,
+        rgba(58, 127, 176, 0.35) 100%);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 24px rgba(74, 159, 216, 0.25);
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(60, 179, 113, 0.3);
+    }
+
+    .chat-header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(16, 185, 129, 0.7) 20%,
+        rgba(16, 185, 129, 0.9) 50%,
+        rgba(16, 185, 129, 0.7) 80%,
+        transparent 100%);
+    }
+
+    .chat-header h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      color: #059669;
+      text-shadow: 
+        -1px -1px 0 rgba(255, 255, 255, 0.3),
+        1px -1px 0 rgba(255, 255, 255, 0.3),
+        -1px 1px 0 rgba(255, 255, 255, 0.3),
+        1px 1px 0 rgba(255, 255, 255, 0.3),
+        -2px -2px 0 rgba(255, 255, 255, 0.2),
+        2px -2px 0 rgba(255, 255, 255, 0.2),
+        -2px 2px 0 rgba(255, 255, 255, 0.2),
+        2px 2px 0 rgba(255, 255, 255, 0.2),
+        0 4px 20px rgba(5, 150, 105, 0.8),
+        0 8px 40px rgba(5, 150, 105, 0.5);
+    }
+
+    .chat-header p {
+      font-size: 14px;
+      opacity: 0.95;
+      color: #d0f0ff;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-indicator {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 10px;
+      height: 10px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.9);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.95); }
+    }
+
+    /* ========== CHAT BODY ========== */
+    .chat-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: linear-gradient(to bottom,
+        rgba(10, 21, 32, 0.7) 0%,
+        rgba(15, 26, 40, 0.8) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    /* ========== MESSAGES ========== */
+    .bot-message,
+    .user-message {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-message {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.35) 0%,
+        rgba(58, 127, 176, 0.3) 100%);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      color: #d0f0ff;
+      align-self: flex-start;
+      border: 1px solid rgba(74, 159, 216, 0.4);
+      box-shadow: 0 4px 16px rgba(74, 159, 216, 0.2),
+                  0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .bot-message:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(74, 159, 216, 0.3),
+                  0 1px 0 rgba(255, 255, 255, 0.15) inset;
+    }
+
+    .user-message {
+      background: linear-gradient(135deg,
+        rgba(16, 185, 129, 0.3) 0%,
+        rgba(5, 150, 105, 0.25) 100%);
+      backdrop-filter: blur(12px) saturate(160%);
+      -webkit-backdrop-filter: blur(12px) saturate(160%);
+      color: #d0f7e5;
+      align-self: flex-end;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2),
+                  0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .user-message:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3),
+                  0 1px 0 rgba(255, 255, 255, 0.15) inset;
+    }
+
+    /* ========== WELCOME SECTION ========== */
+    .welcome-section {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.3) 0%,
+        rgba(58, 127, 176, 0.25) 100%);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(74, 159, 216, 0.4);
+      box-shadow: 0 4px 24px rgba(74, 159, 216, 0.2),
+                  0 1px 0 rgba(255, 255, 255, 0.1) inset;
+      color: #d0f0ff;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .welcome-section .icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 4px 12px rgba(60, 179, 113, 0.5));
+    }
+
+    .welcome-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: white;
+      text-shadow: 0 2px 8px rgba(74, 159, 216, 0.3);
+    }
+
+    .welcome-section p {
+      font-size: 13px;
+      opacity: 0.95;
+      color: #c4f0e0;
+      line-height: 1.5;
+    }
+
+    /* ========== TYPING INDICATOR ========== */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      background: rgba(74, 159, 216, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(74, 159, 216, 0.3);
+      border-radius: 16px;
+      align-self: flex-start;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* ========== INPUT AREA ========== */
+    .chat-input {
+      padding: 20px;
+      background: linear-gradient(to top,
+        rgba(74, 159, 216, 0.12) 0%,
+        rgba(58, 127, 176, 0.08) 100%);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-top: 1px solid rgba(74, 159, 216, 0.3);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+      flex-shrink: 0;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.08) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(74, 159, 216, 0.3);
+      border-radius: 20px;
+      font-size: 14px;
+      color: #d0f0ff;
+      outline: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) inset,
+                  0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input input::placeholder {
+      color: #8ac4e0;
+    }
+
+    .chat-input input:focus {
+      border-color: #4A9FD8;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.12) 100%);
+      box-shadow: 0 0 0 3px rgba(74, 159, 216, 0.2),
+                  0 2px 8px rgba(0, 0, 0, 0.1) inset;
+      transform: translateY(-1px);
+    }
+
+    .chat-input button {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.9) 0%,
+        rgba(58, 127, 176, 0.9) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(16, 185, 129, 0.5);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(74, 159, 216, 0.4),
+                  0 1px 0 rgba(255, 255, 255, 0.2) inset;
+      flex-shrink: 0;
+    }
+
+    .chat-input button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(74, 159, 216, 0.5),
+                  0 1px 0 rgba(255, 255, 255, 0.3) inset;
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 1) 0%,
+        rgba(58, 127, 176, 1) 100%);
+    }
+
+    .chat-input button:active {
+      transform: translateY(0);
+    }
+
+    .chat-input button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ========== SCROLLBAR ========== */
+    .chat-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-body::-webkit-scrollbar-track {
+      background: rgba(74, 159, 216, 0.05);
+      border-radius: 8px;
+    }
+
+    .chat-body::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.4) 0%,
+        rgba(58, 127, 176, 0.4) 100%);
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-body::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg,
+        rgba(74, 159, 216, 0.6) 0%,
+        rgba(58, 127, 176, 0.6) 100%);
+    }
+
+    /* ========== LINKS ========== */
+    .bot-message a {
+      color: #a8e6cf;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .bot-message a:hover {
+      color: #c4f0e0;
+    }
+
+    .purchase-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white !important;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-decoration: none !important;
+      font-weight: 700;
+      font-size: 13px;
+      margin: 6px 0;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .purchase-button:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+    }
+
+    /* ========== MOBILE FULL SCREEN (SECONDARY) ========== */
+    @media (max-width: 768px) {
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        display: block;
+        background: #0a1520;
+      }
+
+      .chat-container {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        background: #0f1a28;
+      }
+
+      .chat-header {
+        padding: 20px 16px;
+        padding-top: max(20px, env(safe-area-inset-top, 20px));
+        border-radius: 0;
+        background: linear-gradient(135deg, #4A9FD8 0%, #3a7fb0 100%);
+      }
+
+      .chat-header h1 {
+        font-size: 24px;
+      }
+
+      .chat-header p {
+        font-size: 13px;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        top: 20px;
+        right: 20px;
+      }
+
+      .chat-body {
+        padding: 16px;
+        background: #0a1520;
+      }
+
+      .bot-message,
+      .user-message {
+        max-width: 90%;
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: 16px;
+      }
+
+      .bot-message {
+        background: rgba(74, 159, 216, 0.3);
+        border: 1px solid rgba(74, 159, 216, 0.4);
+        color: #d0f0ff;
+      }
+
+      .user-message {
+        background: rgba(16, 185, 129, 0.3);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        color: #d0f7e5;
+      }
+
+      .welcome-section {
+        background: rgba(74, 159, 216, 0.3);
+        border: 1px solid rgba(74, 159, 216, 0.4);
+        padding: 18px;
+        color: #d0f0ff;
+      }
+
+      .welcome-section .icon {
+        font-size: 28px;
+      }
+
+      .welcome-section h3 {
+        font-size: 15px;
+      }
+
+      .welcome-section p {
+        font-size: 13px;
+        color: #c4f0e0;
+      }
+
+      .chat-input {
+        padding: 16px;
+        padding-bottom: max(16px, calc(16px + env(safe-area-inset-bottom, 0px)));
+        background: #1a2835;
+      }
+
+      .chat-input input {
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1.5px solid rgba(74, 159, 216, 0.3);
+        color: #d0f0ff;
+      }
+
+      .chat-input input::placeholder {
+        color: #8ac4e0;
+      }
+
+      .chat-input button {
+        padding: 14px 20px;
+        font-size: 14px;
+        border-radius: 24px;
+        min-height: 46px;
+        background: linear-gradient(135deg, #4A9FD8 0%, #3a7fb0 100%);
+      }
+
+      .purchase-button {
+        padding: 12px 20px;
+        font-size: 14px;
+        min-height: 44px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="status-indicator"></div>
+    <h1>Luna</h1>
+    <p>Spirit, Essence and Vision</p>
+  </div>
+  
+  <div class="chat-body" id="chat-body">
+    <div class="welcome-section">
+      <div class="icon">✨</div>
+      <h3>Welcome to Dr.V Health!</h3>
+      <p>I'm Luna, your wellness assistant. Let me guide you on your journey to better health!</p>
+    </div>
+  </div>
+  
+  <div class="chat-input">
+    <input type="text" id="user-input" placeholder="Type your message here..." />
+    <button onclick="sendMessage()" id="send-button">Send</button>
+  </div>
+</div>
+
+<script type="module">
+const CHATBOT_ID = "f0ad5840-a7f1-4c19-8004-e5b4111f61cf"; // Add Luna's chatbot ID
+const BACKEND_URL = "https://hsrpibsdfzzzvfmfakqu.supabase.co/functions/v1/chatbot-proxy";
+
+let sessionId = crypto.randomUUID();
+let currentThreadId = null;
+let retryCount = 0;
+const MAX_RETRIES = 2;
+
+async function initializeThread() {
+  try {
+    await createThread();
+  } catch (error) {
+    console.log('Thread pre-warming failed');
+  }
+}
+
+function addMessage(content, className = "bot-message") {
+  const chatBody = document.getElementById("chat-body");
+  const msg = document.createElement("div");
+  msg.className = className;
+
+  if (className === "bot-message") {
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    let processedContent = content.replace(linkRegex, (match, text, url) => {
+      if (url.includes('stripe.com') || url.includes('booking') || url.includes('reserve') || url.includes('buy')) {
+        return `<a href="${url}" target="_blank" class="purchase-button">${text}</a>`;
+      } else {
+        return `<a href="${url}" target="_blank">${text}</a>`;
+      }
+    });
+
+    processedContent = processedContent.replace(
+      /(https?:\/\/[^\s\)]+)(?![^<]*<\/a>)/g,
+      '<a href="$1" target="_blank">$1</a>'
+    );
+
+    msg.innerHTML = processedContent;
+  } else {
+    msg.textContent = content;
+  }
+
+  chatBody.appendChild(msg);
+  chatBody.scrollTop = chatBody.scrollHeight;
+  return msg;
+}
+
+function showTypingIndicator() {
+  const chatBody = document.getElementById("chat-body");
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "typing-indicator";
+  typingDiv.id = "typing-indicator";
+
+  for (let i = 0; i < 3; i++) {
+    const dot = document.createElement("div");
+    dot.className = "typing-dot";
+    typingDiv.appendChild(dot);
+  }
+
+  chatBody.appendChild(typingDiv);
+  chatBody.scrollTop = chatBody.scrollHeight;
+  return typingDiv;
+}
+
+function removeTypingIndicator() {
+  const typing = document.getElementById("typing-indicator");
+  if (typing) typing.remove();
+}
+
+async function callBackend(action, payload = {}, attempt = 1) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    
+    const response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatbot_id: CHATBOT_ID,
+        action: action,
+        ...payload
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Backend error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Backend request failed');
+    }
+
+    return result.data;
+    
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Response timeout');
+    }
+    
+    if (attempt <= MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      return callBackend(action, payload, attempt + 1);
+    }
+    
+    throw error;
+  }
+}
+
+async function createThread() {
+  const thread = await callBackend('create_thread');
+  currentThreadId = thread.id;
+  return currentThreadId;
+}
+
+async function sendToBackend(message) {
+  if (!currentThreadId) {
+    await createThread();
+  }
+
+  const response = await callBackend('send_message', {
+    message: message,
+    thread_id: currentThreadId
+  });
+
+  return response;
+}
+
+async function saveChatHistory(userMessage, botResponse) {
+  try {
+    await callBackend('save_chat', {
+      message: userMessage,
+      response: botResponse,
+      session_id: sessionId
+    });
+  } catch (error) {
+    // Non-critical
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById("user-input");
+  const message = input.value.trim();
+  if (message === "") return;
+
+  const sendButton = document.getElementById("send-button");
+  sendButton.disabled = true;
+  retryCount = 0;
+
+  addMessage(message, "user-message");
+  input.value = "";
+  showTypingIndicator();
+
+  try {
+    const response = await sendToBackend(message);
+    removeTypingIndicator();
+    addMessage(response, "bot-message");
+    await saveChatHistory(message, response);
+  } catch (error) {
+    removeTypingIndicator();
+    
+    let errorMessage = "I apologize, but I'm having trouble connecting right now. ";
+    
+    if (error.message.includes('timeout')) {
+      errorMessage += "Please try again or contact us directly.";
+    } else {
+      errorMessage += "Please try again in a moment.";
+    }
+    
+    addMessage(errorMessage, "bot-message");
+  }
+
+  sendButton.disabled = false;
+  input.focus();
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+  initializeThread();
+
+  setTimeout(() => {
+    addMessage("Welcome to Dr.V Health! I'm here to guide you on your wellness journey. Ask me anything about our services, programs, or schedule an appointment. También hablo Español.", "bot-message");
+  }, 800);
+
+  const input = document.getElementById("user-input");
+  input.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+
+  input.focus();
+});
+
+window.sendMessage = sendMessage;
+</script>
+</body>
+</html>
